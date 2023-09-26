@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connect Four</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        .board {
+            display: inline-grid;
+            grid-template-columns: repeat(7, 80px);
+            gap: 5px;
+        }
+        .cell {
+            width: 80px;
+            height: 80px;
+            border: 2px solid #333;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        .cell.empty {
+            background-color: #f9f3f3;
+        }
+        .cell.player1 {
+            background-color: #ff6347; /* Red */
+        }
+        .cell.player2 {
+            background-color: #3498db; /* Blue */
+        }
+    </style>
+</head>
+<body>
+    <h1>Connect Four</h1>
+    <div class="board" id="board"></div>
+    <p id="winner"></p>
+    <button onclick="resetGame()">Reset Game</button>
+
+    <script>
+        const board = document.getElementById('board');
+        const winnerText = document.getElementById('winner');
+        const numRows = 6;
+        const numCols = 7;
+        let currentPlayer = 'player1';
+        let gameOver = false;
+
+        // Create the game board
+        for (let row = 0; row < numRows; row++) {
+            for (let col = 0; col < numCols; col++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell empty';
+                cell.dataset.row = row;
+                cell.dataset.col = col;
+                cell.addEventListener('click', () => dropPiece(col));
+                board.appendChild(cell);
+            }
+        }
+
+        function dropPiece(col) {
+            if (gameOver) return;
+
+            for (let row = numRows - 1; row >= 0; row--) {
+                const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+                if (cell.classList.contains('empty')) {
+                    cell.classList.remove('empty');
+                    cell.classList.add(currentPlayer);
+                    checkForWin(row, col);
+                    switchPlayer();
+                    return;
+                }
+            }
+        }
+
+        function switchPlayer() {
+            currentPlayer = currentPlayer === 'player1' ? 'player2' : 'player1';
+        }
+
+        function checkForWin(row, col) {
+            const directions = [
+                [-1, 0], [-1, 1], [0, 1], [1, 1]
+            ];
+
+            for (const [dx, dy] of directions) {
+                let count = 1;
+                for (let i = 1; i <= 3; i++) {
+                    const newRow = row + (i * dx);
+                    const newCol = col + (i * dy);
+
+                    if (
+                        newRow >= 0 && newRow < numRows &&
+                        newCol >= 0 && newCol < numCols
+                    ) {
+                        const cell = document.querySelector(`[data-row="${newRow}"][data-col="${newCol}"]`);
+                        if (cell.classList.contains(currentPlayer)) {
+                            count++;
+                        } else {
+                            break;
+                        }
+                    } else {
+                        break;
+                    }
+                }
+
+                for (let i = -1; i >= -3; i--) {
+                    const newRow = row + (i * dx);
+                    const newCol = col + (i * dy);
+
+                    if (
+                        newRow >= 0 && newRow < numRows &&
+                        newCol >= 0 && newCol < numCols
+                    ) {
+                        const cell = document.querySelector(`[data-row="${newRow}"][data-col="${newCol}"]`);
+                        if (cell.classList.contains(currentPlayer)) {
+                            count++;
+                        } else {
+                            break;
+                        }
+                    } else {
+                        break;
+                    }
+                }
+
+                if (count >= 4) {
+                    gameOver = true;
+                    winnerText.textContent = `${currentPlayer.toUpperCase()} wins!`;
+                    return;
+                }
+            }
+        }
+
+        function resetGame() {
+            const cells = document.querySelectorAll('.cell');
+            cells.forEach(cell => {
+                cell.classList.remove('player1', 'player2');
+                cell.classList.add('empty');
+            });
+            currentPlayer = 'player1';
+            gameOver = false;
+            winnerText.textContent = '';
+        }
+    </script>
+</body>
+</html>
